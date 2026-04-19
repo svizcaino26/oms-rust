@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 use sqlx::prelude::FromRow;
-use sqlx::{PgPool};
-use thiserror::Error;
 use std::fmt::Display;
+use thiserror::Error;
 use time::PrimitiveDateTime;
 use typesafe_builder::*;
 
@@ -50,7 +50,7 @@ impl NewProduct {
 
 pub async fn create_product(
     pool: &PgPool,
-    new_product: NewProduct
+    new_product: NewProduct,
 ) -> anyhow::Result<Product, AppError> {
     let new_product = new_product.validate()?;
     let product = sqlx::query_as!(
@@ -63,7 +63,9 @@ pub async fn create_product(
         new_product.name,
         new_product.price_cents,
         new_product.description
-    ).fetch_one(pool).await?;
+    )
+    .fetch_one(pool)
+    .await?;
 
     Ok(product)
 }
@@ -74,7 +76,9 @@ pub async fn find_all(pool: &PgPool) -> anyhow::Result<Vec<Product>, AppError> {
         r#"
             SELECT * FROM products
         "#
-    ).fetch_all(pool).await?;
+    )
+    .fetch_all(pool)
+    .await?;
 
     Ok(products)
 }
@@ -87,9 +91,26 @@ pub async fn find_all_limited(pool: &PgPool, limit: i64) -> anyhow::Result<Vec<P
             LIMIT $1
         "#,
         limit
-    ).fetch_all(pool).await?;
+    )
+    .fetch_all(pool)
+    .await?;
 
     Ok(products)
+}
+
+pub async fn find_by_id(pool: &PgPool, id: i32) -> anyhow::Result<Option<Product>, AppError> {
+    let product = sqlx::query_as!(
+        Product,
+        r#"
+            SELECT * FROM products
+            WHERE id = $1
+        "#,
+        id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(product)
 }
 
 #[derive(Debug, Error)]
@@ -105,5 +126,5 @@ pub enum AppError {
     #[error("{0}")]
     Database(#[from] sqlx::Error),
     #[error("{0}")]
-    Validation(#[from] ValidationError)
+    Validation(#[from] ValidationError),
 }
