@@ -41,6 +41,9 @@ impl NewProduct {
         if self.price_cents < 0 {
             return Err(ValidationError::InvalidPrice(self.price_cents).into());
         }
+        if self.name.is_empty() {
+            return Err(ValidationError::EmptyName.into());
+        }
         Ok(self)
     }
 }
@@ -68,6 +71,8 @@ pub async fn create_product(
 pub enum ValidationError {
     #[error("Invalid price {0}")]
     InvalidPrice(i32),
+    #[error("Name cannot be empty")]
+    EmptyName,
 }
 
 #[derive(Debug, Error)]
