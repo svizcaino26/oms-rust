@@ -51,7 +51,7 @@ impl NewProduct {
 pub async fn create_product(
     pool: &PgPool,
     new_product: NewProduct
-) -> Result<Product, AppError> {
+) -> anyhow::Result<Product, AppError> {
     let new_product = new_product.validate()?;
     let product = sqlx::query_as!(
         Product,
@@ -64,7 +64,32 @@ pub async fn create_product(
         new_product.price_cents,
         new_product.description
     ).fetch_one(pool).await?;
+
     Ok(product)
+}
+
+pub async fn find_all(pool: &PgPool) -> anyhow::Result<Vec<Product>, AppError> {
+    let products = sqlx::query_as!(
+        Product,
+        r#"
+            SELECT * FROM products
+        "#
+    ).fetch_all(pool).await?;
+
+    Ok(products)
+}
+
+pub async fn find_all_limited(pool: &PgPool, limit: i64) -> anyhow::Result<Vec<Product>, AppError> {
+    let products = sqlx::query_as!(
+        Product,
+        r#"
+            SELECT * FROM products
+            LIMIT $1
+        "#,
+        limit
+    ).fetch_all(pool).await?;
+
+    Ok(products)
 }
 
 #[derive(Debug, Error)]
