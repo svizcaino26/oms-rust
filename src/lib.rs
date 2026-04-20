@@ -4,7 +4,7 @@ use sqlx::prelude::FromRow;
 use std::fmt::Display;
 use thiserror::Error;
 use time::PrimitiveDateTime;
-use typesafe_builder::*;
+// use typesafe_builder::*;
 
 #[derive(FromRow, Debug, Serialize, Deserialize)]
 pub struct Product {
@@ -26,13 +26,14 @@ impl Display for Product {
     }
 }
 
-#[derive(Builder, Debug, Serialize, Deserialize)]
+// #[derive(Builder, Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NewProduct {
-    #[builder(required, into)]
+    // #[builder(required, into)]
     name: String,
-    #[builder(required)]
+    // #[builder(required)]
     price_cents: i32,
-    #[builder(optional, into)]
+    // #[builder(optional, into)]
     description: Option<String>,
 }
 
@@ -45,6 +46,19 @@ impl NewProduct {
             return Err(ValidationError::EmptyName.into());
         }
         Ok(self)
+    }
+
+    pub fn new(
+        name: impl Into<String>,
+        price_cents: i32,
+        description: Option<String>,
+    ) -> Result<Self, AppError> {
+        Ok(Self {
+            name: name.into(),
+            price_cents,
+            description,
+        }
+        .validate()?)
     }
 }
 
