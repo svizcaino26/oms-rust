@@ -1,8 +1,8 @@
 use crate::{AppError, NewProduct, Product};
 use sqlx::PgPool;
 
-pub async fn save(pool: &PgPool, new_product: NewProduct) -> anyhow::Result<Product, AppError> {
-    let new_product = new_product.validate()?;
+pub async fn save(pool: &PgPool, new_product: NewProduct) -> Result<Product, AppError> {
+    // let new_product = new_product.validate()?;
     let product = sqlx::query_as!(
         Product,
         r#"
@@ -20,7 +20,7 @@ pub async fn save(pool: &PgPool, new_product: NewProduct) -> anyhow::Result<Prod
     Ok(product)
 }
 
-pub async fn find_all(pool: &PgPool) -> anyhow::Result<Vec<Product>, AppError> {
+pub async fn find_all(pool: &PgPool) -> Result<Vec<Product>, AppError> {
     let products = sqlx::query_as!(
         Product,
         r#"
@@ -33,7 +33,7 @@ pub async fn find_all(pool: &PgPool) -> anyhow::Result<Vec<Product>, AppError> {
     Ok(products)
 }
 
-pub async fn find_all_limited(pool: &PgPool, limit: i64) -> anyhow::Result<Vec<Product>, AppError> {
+pub async fn find_all_limited(pool: &PgPool, limit: i64) -> Result<Vec<Product>, AppError> {
     let products = sqlx::query_as!(
         Product,
         r#"
@@ -48,7 +48,7 @@ pub async fn find_all_limited(pool: &PgPool, limit: i64) -> anyhow::Result<Vec<P
     Ok(products)
 }
 
-pub async fn find_by_id(pool: &PgPool, id: i32) -> anyhow::Result<Option<Product>, AppError> {
+pub async fn find_by_id(pool: &PgPool, id: i32) -> Result<Option<Product>, AppError> {
     let product = sqlx::query_as!(
         Product,
         r#"
@@ -63,7 +63,7 @@ pub async fn find_by_id(pool: &PgPool, id: i32) -> anyhow::Result<Option<Product
     Ok(product)
 }
 
-pub async fn delete(pool: &PgPool, product: Product) -> anyhow::Result<(), AppError> {
+pub async fn delete(pool: &PgPool, product: Product) -> Result<(), AppError> {
     sqlx::query!(
         r#"
             DELETE FROM products
