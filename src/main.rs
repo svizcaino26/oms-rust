@@ -1,6 +1,8 @@
-use oms_rust::{NewProductBuilder, create_product, find_all, find_by_id};
+use oms_rust::NewProductBuilder;
 use sqlx::PgPool;
 use std::env;
+
+use oms_rust::repository::product_repository::*;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -22,15 +24,23 @@ async fn main() -> anyhow::Result<()> {
     // println!("{product}");
 
     let all_products = find_all(&db).await?;
+    println!("List of all products");
     for p in all_products {
         println!("{p}");
     }
 
-    let id = 2;
-    if let Some(product) = find_by_id(&db, id).await? {
-        println!("{product}");
-    } else {
-        println!("Product with id: {id}, not found");
-    }
+    // // let id = 2;
+
+    // // if let Some(product) = find_by_id(&db, id).await? {
+    // //     println!("{product}");
+    // //     delete(&db, product).await?;
+    // // }
+
+    // let all_products = find_all(&db).await?;
+    // println!("List of all products after delete");
+    // for p in all_products {
+    //     println!("{p}");
+    // }
+
     Ok(())
 }
