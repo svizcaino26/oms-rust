@@ -1,8 +1,8 @@
-use crate::{AppError, NewProduct, Product};
+use crate::{AppError, Product};
+use crate::dto::products_dto::NewProduct;
 use sqlx::PgPool;
 
 pub async fn save(pool: &PgPool, new_product: NewProduct) -> Result<Product, AppError> {
-    // let new_product = new_product.validate()?;
     let product = sqlx::query_as!(
         Product,
         r#"
@@ -10,8 +10,8 @@ pub async fn save(pool: &PgPool, new_product: NewProduct) -> Result<Product, App
             VALUES ($1, $2, $3)
             RETURNING *
         "#,
-        new_product.name,
-        new_product.price_cents,
+        new_product.name.as_str(),
+        new_product.price_cents.value(),
         new_product.description
     )
     .fetch_one(pool)
@@ -63,15 +63,30 @@ pub async fn find_by_id(pool: &PgPool, id: i32) -> Result<Option<Product>, AppEr
     Ok(product)
 }
 
-pub async fn delete(pool: &PgPool, product: Product) -> Result<(), AppError> {
-    sqlx::query!(
+pub async fn delete(pool: &PgPool, id: i32) -> Result<bool, AppError> {
+    let result = sqlx::query!(
         r#"
             DELETE FROM products
             WHERE id = $1
         "#,
-        product.id
+        id
     )
     .execute(pool)
     .await?;
-    Ok(())
+
+    Ok(result.rows_affected() > 0)
 }
+
+pub async fn update_product(pool: &PgPool, id: i32, price_cents: i32) -> Result<bool, AppError> {
+    let result = sqlx::query!(
+        r#"
+            UPDATE products
+            SET price_cents = $1
+            WHERE id = $2
+        "#,
+        price_cents, id
+    ).execute(pool).await?;
+
+    Ok(result.rows_affected() > 0)
+}
+

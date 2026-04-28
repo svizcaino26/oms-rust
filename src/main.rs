@@ -1,5 +1,5 @@
 // use oms_rust::NewProductBuilder;
-use oms_rust::NewProduct;
+use oms_rust::dto::products_dto::NewProduct;
 use sqlx::PgPool;
 use std::env;
 
@@ -14,16 +14,31 @@ async fn main() -> anyhow::Result<()> {
     )
     .expect("Failed to initialize DB pool");
 
-    let new_product = NewProduct::new("PS$ controller", 7400, None)?;
+    let new_product = NewProduct::new("mouse pad", 1200, None)?;
 
     let product = save(&db, new_product).await?;
     println!("{product}");
 
     let all_products = find_all(&db).await?;
     println!("List of all products");
-    for p in all_products {
+    for p in &all_products[..] {
         println!("{p}");
     }
+
+    let id = 10;
+    let new_price_cents = 8400;
+
+    match update_product(&db, id, new_price_cents).await? {
+        true => println!("Price updated"),
+        false => println!("Failed to update price")
+    }
+
+    println!("Products after update");
+
+    for p in &all_products[..] {
+        println!("{p}");
+    }
+    
 
     // // let id = 2;
 
