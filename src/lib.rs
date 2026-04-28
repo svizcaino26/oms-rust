@@ -1,3 +1,4 @@
+pub mod dto;
 pub mod repository;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
@@ -23,42 +24,6 @@ impl Display for Product {
             "Product: {} - {}\nPrice: {}\n",
             self.name, self.id, self.price_cents
         )
-    }
-}
-
-// #[derive(Builder, Debug, Serialize, Deserialize)]
-#[derive(Debug, Serialize, Deserialize)]
-pub struct NewProduct {
-    // #[builder(required, into)]
-    name: String,
-    // #[builder(required)]
-    price_cents: i32,
-    // #[builder(optional, into)]
-    description: Option<String>,
-}
-
-impl NewProduct {
-    pub fn validate(self) -> Result<Self, AppError> {
-        if self.price_cents < 0 {
-            return Err(ValidationError::InvalidPrice(self.price_cents).into());
-        }
-        if self.name.is_empty() {
-            return Err(ValidationError::EmptyName.into());
-        }
-        Ok(self)
-    }
-
-    pub fn new(
-        name: impl Into<String>,
-        price_cents: i32,
-        description: Option<String>,
-    ) -> Result<Self, AppError> {
-        Ok(Self {
-            name: name.into(),
-            price_cents,
-            description,
-        }
-        .validate()?)
     }
 }
 
