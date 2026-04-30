@@ -33,6 +33,8 @@ pub enum ValidationError {
     InvalidPrice(i32),
     #[error("Name cannot be empty")]
     EmptyName,
+    #[error("Result from dynamic query is empty")]
+    EmptyQuery,
 }
 
 #[derive(Debug, Error)]

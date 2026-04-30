@@ -1,6 +1,6 @@
-use crate::{AppError, Product};
-use crate::dto::products_dto::NewProduct;
-use sqlx::PgPool;
+use crate::{AppError, Product, ValidationError};
+use crate::dto::products_dto::{NewProduct, UpdateProduct};
+use sqlx::{PgPool, Postgres, QueryBuilder};
 
 pub async fn save(pool: &PgPool, new_product: NewProduct) -> Result<Product, AppError> {
     let product = sqlx::query_as!(
@@ -77,16 +77,38 @@ pub async fn delete(pool: &PgPool, id: i32) -> Result<bool, AppError> {
     Ok(result.rows_affected() > 0)
 }
 
-pub async fn update_product(pool: &PgPool, id: i32, price_cents: i32) -> Result<bool, AppError> {
-    let result = sqlx::query!(
-        r#"
-            UPDATE products
-            SET price_cents = $1
-            WHERE id = $2
-        "#,
-        price_cents, id
-    ).execute(pool).await?;
+pub async fn update_product(pool: &PgPool, id: i32, update_product: UpdateProduct) -> Result<bool, AppError> {
+    let mut field_inserted = false;
+    let mut qb: QueryBuilder<Postgres> = QueryBuilder::new("UPDATE products SET ");
 
+    if let Some(name) = update_product.name {
+        let name = String::from(name.as_str());
+        qb.push("name = ").push_bind(name);
+        field_inserted = true;
+    }
+
+    if let Some(price_cents) = update_product.price_cents {
+        if field_inserted {
+            qb.push(", ");
+        }
+        qb.push("price_cents = ").push_bind(price_cents.value());
+        field_inserted = true;
+    }
+
+    if let Some(description) = update_product.description {
+        if field_inserted {
+            qb.push(", ");
+        }
+        qb.push("description = ").push_bind(description);
+        field_inserted = true;
+    }
+
+    qb.push(" WHERE id = ").push_bind(id);
+
+    if !field_inserted {
+        return Err(ValidationError::EmptyQuery.into());
+    }
+    let result = qb.build().execute(pool).await?;
+    
     Ok(result.rows_affected() > 0)
 }
-
