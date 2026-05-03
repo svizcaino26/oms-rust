@@ -1,5 +1,4 @@
-use crate::{AppError, Product, ValidationError};
-use crate::dto::products_dto::{NewProduct, UpdateProduct};
+use crate::{dto::products_dto::{NewProduct, UpdateProduct}, errors::{AppError, NotFoundError, ValidationError}, models::Product};
 use sqlx::{PgPool, Postgres, QueryBuilder};
 
 pub async fn save(pool: &PgPool, new_product: NewProduct) -> Result<Product, AppError> {
@@ -48,8 +47,8 @@ pub async fn find_all_limited(pool: &PgPool, limit: i64) -> Result<Vec<Product>,
     Ok(products)
 }
 
-pub async fn find_by_id(pool: &PgPool, id: i32) -> Result<Option<Product>, AppError> {
-    let product = sqlx::query_as!(
+pub async fn find_by_id(pool: &PgPool, id: i32) -> Result<Product, AppError> {
+    if let Some(product) = sqlx::query_as!(
         Product,
         r#"
             SELECT * FROM products
@@ -58,9 +57,11 @@ pub async fn find_by_id(pool: &PgPool, id: i32) -> Result<Option<Product>, AppEr
         id
     )
     .fetch_optional(pool)
-    .await?;
-
-    Ok(product)
+    .await? {
+        Ok(product) 
+    } else {
+        Err(NotFoundError::ProductNotFound(id).into())
+    }
 }
 
 pub async fn delete(pool: &PgPool, id: i32) -> Result<bool, AppError> {

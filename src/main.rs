@@ -1,5 +1,5 @@
 // use oms_rust::NewProductBuilder;
-use oms_rust::dto::products_dto::{NewProduct, UpdateProduct};
+use oms_rust::{dto::products_dto::{NewProduct, UpdateProduct}, repository::inventory_repository::increase_stock, types::InventoryQuantity};
 use sqlx::PgPool;
 use std::env;
 
@@ -25,17 +25,23 @@ async fn main() -> anyhow::Result<()> {
         println!("{p}");
     }
 
-    let id = 1;
+    let id = 4;
+    let stock_updated = increase_stock(&db, id, InventoryQuantity::new(5)?).await?;
+    if stock_updated {
+        println!("Stock entries updated");
+    }
+
+    // let id = 1;
     // let new_price_cents = 8400;
 
-    let prod_info = UpdateProduct::new(None, None, Some("Enterprise laptop".into()))?;
-    update_product(&db, id, prod_info).await?;
+    // let prod_info = UpdateProduct::new(None, None, Some("Enterprise laptop".into()))?;
+    // update_product(&db, id, prod_info).await?;
 
-    println!("Products after update");
+    // println!("Products after update");
 
-    for p in &all_products[..] {
-        println!("{p}");
-    }
+    // for p in &all_products[..] {
+    //     println!("{p}");
+    // }
     
 
     // // let id = 2;
