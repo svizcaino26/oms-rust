@@ -1,39 +1,8 @@
-use crate::{AppError, ValidationError};
+use crate::{
+    errors::AppError,
+    types::{NonEmptyString, PriceCents},
+};
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Deserialize, Serialize, sqlx::Type)]
-pub struct NonEmptyString(String);
-
-impl NonEmptyString {
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-
-    fn new(value: String) -> Result<Self, AppError> {
-        if value.is_empty() {
-            return Err(ValidationError::EmptyName.into());
-        }
-
-        Ok(Self(value))
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize, sqlx::Type)]
-pub struct PriceCents(i32);
-
-impl PriceCents {
-    fn new(value: i32) -> Result<Self, AppError> {
-        if value < 0 {
-            return Err(ValidationError::InvalidPrice(value).into());
-        }
-
-        Ok(Self(value))
-    }
-
-    pub fn value(&self) -> i32 {
-        self.0
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NewProduct {
